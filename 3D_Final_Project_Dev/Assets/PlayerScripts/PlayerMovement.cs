@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class NewMonoBehaviourScript : MonoBehaviour
+public class PlayerMovement : MonoBehaviour
 {
     private CharacterController controller;
 
@@ -10,6 +10,7 @@ public class NewMonoBehaviourScript : MonoBehaviour
     public float jumpHeight = 3f;
 
     public Transform groundCheck;
+
     public float groundDistance = 0.4f;
     public LayerMask groundMask;
 
@@ -26,6 +27,7 @@ public class NewMonoBehaviourScript : MonoBehaviour
 
     void Update()
     {
+   
         //Ground check 
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
 

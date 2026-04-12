@@ -124,9 +124,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2588906586364316552}
   - component: {fileID: 1148257530997040782}
-  - component: {fileID: 5420955025377717627}
-  - component: {fileID: 3705096838698975108}
-  - component: {fileID: 5941712013911090840}
+  - component: {fileID: 2520669913579091841}
+  - component: {fileID: 5875848135717376085}
+  - component: {fileID: 6267208046857015323}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -177,7 +177,7 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &5420955025377717627
+--- !u!114 &2520669913579091841
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -188,16 +188,16 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9b423690539cb6248b5f80e5a055718a, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NewMonoBehaviourScript
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   speed: 12
   gravity: -20
-  jumpHeight: 5
+  jumpHeight: 3
   groundCheck: {fileID: 7362409778825964799}
-  groundDistance: 0.2
+  groundDistance: 0.4
   groundMask:
     serializedVersion: 2
     m_Bits: 8
---- !u!114 &3705096838698975108
+--- !u!114 &5875848135717376085
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -209,11 +209,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ee8c17feee79ac4aa40540a09a4542e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MouseMovement
+  cameraTransform: {fileID: 6006813959277916717}
   xMouseSensativity: 100
   yMouseSensativity: 100
   topClamp: -90
   bottomClamp: 90
---- !u!114 &5941712013911090840
+--- !u!114 &6267208046857015323
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

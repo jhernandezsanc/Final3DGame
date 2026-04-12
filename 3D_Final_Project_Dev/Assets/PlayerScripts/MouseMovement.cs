@@ -3,6 +3,8 @@ using UnityEngine.InputSystem;
 
 public class MouseMovement : MonoBehaviour
 {
+    public Transform cameraTransform;
+
     //adjusts player mouse sense
     public float xMouseSensativity = 100f;
     public float yMouseSensativity = 100f;
@@ -35,7 +37,8 @@ public class MouseMovement : MonoBehaviour
 
             yRotation += mouseX;
 
-            transform.localRotation = Quaternion.Euler(xRotation, yRotation, 0f);
+            cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+            transform.localRotation = Quaternion.Euler(0f, yRotation, 0f);
         }
     }
 }
