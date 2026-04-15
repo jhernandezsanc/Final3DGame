@@ -16,7 +16,7 @@ public class PlayerMovement : MonoBehaviour
 
     Vector3 velocity;
 
-    bool isGrounded;
+    [HideInInspector]public bool isGrounded;//made public for recoil but hidden in inspector
     bool isMoving; //bool for later use
 
     private Vector3 lastPosition = new Vector3(0f, 0f, 0f);

@@ -8,6 +8,7 @@ public class RecoilController : MonoBehaviour
     // Marks Singleton 
     public static RecoilController Instance;
     private CharacterController characterController;
+    private PlayerMovement playerMovement;
     public void Awake()
     {
         characterController = GetComponent<CharacterController>();
@@ -19,11 +20,16 @@ public class RecoilController : MonoBehaviour
         {
             Destroy(this);
         }
+        playerMovement = GetComponent<PlayerMovement>();
     }
 
     //finds distance between player and source of recoil, finds the direction, amplifies it by recoil strength
     public void Recoil(Vector3 forcePos, float recoilStrength = 1f)
     {
+        if (playerMovement.isGrounded) //reduces recoil felt when player starts on ground
+        {
+            recoilStrength = recoilStrength / 10;
+        }
         Vector3 playerPos = transform.position;
         Vector3 accelDir = playerPos - forcePos;
         speed += accelDir.normalized * recoilStrength;
