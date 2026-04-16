@@ -42,7 +42,9 @@ public class RecoilController : MonoBehaviour
         if (speed.sqrMagnitude > 0.001f) //keeps from calling too much 
         {
             speed = Vector3.Lerp(speed, Vector3.zero, decelPercent * Time.deltaTime); //nifty little thang 
-            characterController.Move(speed * Time.deltaTime);
+            // characterController.Move(speed * Time.deltaTime); //Old Logic
+            MasterMovement.Instance.frameDisplacement += speed * Time.deltaTime;
+            
         }
 
     }
