@@ -16,7 +16,7 @@ public class PlayerMovement : MonoBehaviour
 
     Vector3 velocity;
 
-    bool isGrounded;
+    [HideInInspector]public bool isGrounded;//made public for recoil but hidden in inspector
     bool isMoving; //bool for later use
 
     private Vector3 lastPosition = new Vector3(0f, 0f, 0f);
@@ -51,7 +51,8 @@ public class PlayerMovement : MonoBehaviour
         //Takes into account diagonal movement 
         if (move.magnitude > 1f) move.Normalize();
 
-        controller.Move(move * speed * Time.deltaTime);
+        //controller.Move(move * speed * Time.deltaTime); //Old logic
+        MasterMovement.Instance.frameDisplacement += move * speed * Time.deltaTime;
 
         //check if can jump 
         if(Keyboard.current.spaceKey.wasPressedThisFrame && isGrounded)
@@ -63,7 +64,8 @@ public class PlayerMovement : MonoBehaviour
         velocity.y += gravity * Time.deltaTime;
 
         //jump 
-        controller.Move(velocity * Time.deltaTime);
+        //controller.Move(velocity * Time.deltaTime); //Old Logic
+        MasterMovement.Instance.frameDisplacement += velocity * Time.deltaTime;
 
         if (lastPosition != gameObject.transform.position && isGrounded == true)
         {

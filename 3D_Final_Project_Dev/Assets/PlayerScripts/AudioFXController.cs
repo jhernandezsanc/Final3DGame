@@ -14,6 +14,10 @@ public class AudioFXController : MonoBehaviour
         {
             instance = this;
         }
+        else
+        {
+            Destroy(this);
+        }
     }
 
     //audioclips called default to 100% volume at player position
