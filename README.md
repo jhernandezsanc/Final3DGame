@@ -7,6 +7,7 @@
 Michael Milton
 Joshua Barraza
 Jose Hernandez Sanchez
+William Pace
 ---
 
 ## 1. Project Overview
