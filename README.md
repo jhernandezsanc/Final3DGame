@@ -1,12 +1,11 @@
 # Final3DGame
 3D Unity game team project
 
-# 3D Game Design
-
 **Group 3**  
 Michael Milton
 Joshua Barraza
 Jose Hernandez Sanchez
+William Pace
 ---
 
 ## 1. Project Overview
@@ -89,7 +88,7 @@ A 3D FPS platformer inspired by Doom, Cyberpunk, Quake and other action games. P
 
 ---
 
-## 7. Task Tracker
+## 7. Group Task Tracker
 
 ### Necessary Features
 - Shotgun / weapon system  
@@ -107,7 +106,7 @@ A 3D FPS platformer inspired by Doom, Cyberpunk, Quake and other action games. P
 
 - Move, Look, Jump — partially implemented  
 - Attack, Interact, Crouch, Sprint, Previous/Next — bound but unimplemented
-- UI: In progress, not pushed
+- UI: In progress designing tutorial/pause menus, not pushed (Josh)
 
 ---
 
