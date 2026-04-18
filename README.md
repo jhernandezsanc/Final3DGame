@@ -6,7 +6,7 @@
 **Group 3**  
 Michael Milton
 Joshua Barraza
-
+Jose Hernandez Sanchez
 ---
 
 ## 1. Project Overview
