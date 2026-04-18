@@ -98,8 +98,13 @@ A 3D FPS platformer inspired by Doom, Cyberpunk, Quake and other action games. P
 - Scene management / level progression  
 
 ### Optional Features
-- Different weapons  
+- Different weapons
 
+### Jobs
+- Michael Milton (Project Manager) : Shotgun and Shooting/Recoil Mechnics
+- Joshua Barraza (Project Documentator) : UI, HUD, and Scene Management
+- Jose Hernandez Sanchez (Project QA) : Enemy AI and Design 
+- William Pace (Lead Designer) : Scene Management and Level Design
 ---
 
 ### Current Progress
