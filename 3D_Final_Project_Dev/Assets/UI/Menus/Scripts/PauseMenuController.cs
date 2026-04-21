@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using TMPro;
 
 public class PauseMenuController : MonoBehaviour
@@ -17,14 +18,35 @@ public class PauseMenuController : MonoBehaviour
     [Header("Scene Settings")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource menuAudioSource;
+    [SerializeField] private AudioClip clickSound;
+    [SerializeField] private AudioClip resumeSound;
+    [SerializeField] private AudioClip saveSound;
+    [SerializeField] private AudioClip loadSound;
+    [SerializeField] private AudioClip tabSwitchSound;
+    [SerializeField] private AudioClip openMenuSound;
+    [SerializeField] private AudioClip closeMenuSound;
+    [SerializeField] private AudioClip errorSound;
+    [SerializeField] private AudioClip quitSound;
+    [Range(0f, 1f)]
+    [SerializeField] private float menuVolume = 1f;
+
     private bool _isPaused = false;
 
     // ─── Lifecycle ────────────────────────────────────────────────
 
     void Start()
     {
-        // Make sure menu is hidden on scene load
         SetPauseState(false);
+
+        // If no AudioSource assigned, add one automatically
+        if (menuAudioSource == null)
+        {
+            menuAudioSource = gameObject.AddComponent<AudioSource>();
+            menuAudioSource.playOnAwake = false;
+            menuAudioSource.spatialBlend = 0f; // 2D sound, no 3D falloff
+        }
     }
 
     void Update()
@@ -34,6 +56,14 @@ public class PauseMenuController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.T) && !_isPaused)
             OpenTutorial();
+    }
+
+    // ─── Audio ────────────────────────────────────────────────────
+
+    private void PlaySound(AudioClip clip)
+    {
+        if (menuAudioSource == null || clip == null) return;
+        menuAudioSource.PlayOneShot(clip, menuVolume);
     }
 
     // ─── Pause State ──────────────────────────────────────────────
@@ -52,52 +82,81 @@ public class PauseMenuController : MonoBehaviour
         Cursor.visible = paused;
 
         if (paused)
-            ShowTab(menuTab); // Always open to main menu tab when pausing
+        {
+            PlaySound(openMenuSound);
+            ShowTab(menuTab);
+        }
+        else
+        {
+            PlaySound(closeMenuSound);
+        }
     }
 
     // ─── Button Handlers ──────────────────────────────────────────
 
     public void OnResumeClicked()
     {
+        PlaySound(resumeSound != null ? resumeSound : clickSound);
         SetPauseState(false);
     }
 
     public void OnSaveGameClicked()
     {
+        PlaySound(saveSound != null ? saveSound : clickSound);
         SaveGame();
     }
 
     public void OnLoadGameClicked()
     {
+        if (!PlayerPrefs.HasKey("SavedScene"))
+        {
+            PlaySound(errorSound != null ? errorSound : clickSound);
+            Debug.LogWarning("[PauseMenu] No save file found.");
+            return;
+        }
+
+        PlaySound(loadSound != null ? loadSound : clickSound);
         LoadGame();
     }
 
     public void OnOptionsClicked()
     {
+        PlaySound(tabSwitchSound != null ? tabSwitchSound : clickSound);
         ShowTab(settingsTab);
     }
 
     public void OnQuitToMenuClicked()
     {
-        // Unpause before scene transition or TimeScale stays 0 in next scene
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(mainMenuSceneName);
+        PlaySound(quitSound != null ? quitSound : clickSound);
+        // Small delay so sound plays before scene unloads
+        StartCoroutine(QuitToMenuAfterSound());
     }
 
     public void OnQuitToDesktopClicked()
     {
-        #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-        #else
-            Application.Quit();
-        #endif
+        PlaySound(quitSound != null ? quitSound : clickSound);
+        StartCoroutine(QuitToDesktopAfterSound());
     }
 
     // ─── Tab Switching ────────────────────────────────────────────
 
-    public void ShowMenuTab()     => ShowTab(menuTab);
-    public void ShowSettingsTab() => ShowTab(settingsTab);
-    public void ShowControlsTab() => ShowTab(controlsTab);
+    public void ShowMenuTab()
+    {
+        PlaySound(tabSwitchSound != null ? tabSwitchSound : clickSound);
+        ShowTab(menuTab);
+    }
+
+    public void ShowSettingsTab()
+    {
+        PlaySound(tabSwitchSound != null ? tabSwitchSound : clickSound);
+        ShowTab(settingsTab);
+    }
+
+    public void ShowControlsTab()
+    {
+        PlaySound(tabSwitchSound != null ? tabSwitchSound : clickSound);
+        ShowTab(controlsTab);
+    }
 
     private void ShowTab(GameObject targetTab)
     {
@@ -112,6 +171,7 @@ public class PauseMenuController : MonoBehaviour
     public void OpenTutorial()
     {
         if (tutorialPanel == null) return;
+        PlaySound(openMenuSound != null ? openMenuSound : clickSound);
         tutorialPanel.SetActive(true);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -120,6 +180,7 @@ public class PauseMenuController : MonoBehaviour
     public void CloseTutorial()
     {
         if (tutorialPanel == null) return;
+        PlaySound(closeMenuSound != null ? closeMenuSound : clickSound);
         tutorialPanel.SetActive(false);
         if (!_isPaused)
         {
@@ -132,7 +193,6 @@ public class PauseMenuController : MonoBehaviour
 
     private void SaveGame()
     {
-        // PlayerPrefs-based save — swap this out for your save system later
         PlayerPrefs.SetString("SavedScene", SceneManager.GetActiveScene().name);
         PlayerPrefs.SetFloat("SavedPosX", Camera.main.transform.position.x);
         PlayerPrefs.SetFloat("SavedPosY", Camera.main.transform.position.y);
@@ -143,23 +203,37 @@ public class PauseMenuController : MonoBehaviour
 
     private void LoadGame()
     {
-        if (!PlayerPrefs.HasKey("SavedScene"))
-        {
-            Debug.LogWarning("[PauseMenu] No save file found.");
-            return;
-        }
-
         Time.timeScale = 1f;
         string savedScene = PlayerPrefs.GetString("SavedScene");
         SceneManager.LoadScene(savedScene);
+    }
+
+    // ─── Coroutines ───────────────────────────────────────────────
+
+    private System.Collections.IEnumerator QuitToMenuAfterSound()
+    {
+        // Wait for clip length, fall back to 0.15s if no clip assigned
+        float delay = quitSound != null ? quitSound.length : 0.15f;
+        yield return new WaitForSecondsRealtime(delay);
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(mainMenuSceneName);
+    }
+
+    private System.Collections.IEnumerator QuitToDesktopAfterSound()
+    {
+        float delay = quitSound != null ? quitSound.length : 0.15f;
+        yield return new WaitForSecondsRealtime(delay);
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
     }
 
     // ─── Cleanup ──────────────────────────────────────────────────
 
     void OnDestroy()
     {
-        // Safety net — always restore TimeScale if this object is destroyed
-        // e.g. if scene changes while paused
         Time.timeScale = 1f;
     }
 }
