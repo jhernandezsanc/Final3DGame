@@ -528,6 +528,7 @@ GameObject:
   - component: {fileID: 6267208046857015323}
   - component: {fileID: 5685383482141744700}
   - component: {fileID: 1797016839943595381}
+  - component: {fileID: 5877540442744145081}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -544,7 +545,7 @@ Transform:
   m_GameObject: {fileID: 7230212653351430677}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 2.76, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 1.43}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -657,6 +658,19 @@ MonoBehaviour:
   reticle: {fileID: 4475679449727318067}
   damageWindow: 0.1
   recoil: 200
+--- !u!114 &5877540442744145081
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7230212653351430677}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72b533decd7437545b178898304818be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MasterMovement
+  frameDisplacement: {x: 0, y: 0, z: 0}
 --- !u!1 &8140710006691361306
 GameObject:
   m_ObjectHideFlags: 0
