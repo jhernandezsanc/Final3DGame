@@ -6,8 +6,8 @@ public class EndPlatform : MonoBehaviour
     public Vector3 winRespawnPoint = new Vector3(0, 10, 0);
 
     [Header("Detection Settings")]
-    public Vector3 detectionOffset = new Vector3(0, 1.1f, 0);
-    public Vector3 detectionSize = new Vector3(2f, 1f, 2f);
+    public Vector3 detectionOffset = new Vector3(0, 1f, 0);
+    public Vector3 detectionSize = new Vector3(10f, 1f, 10f);
 
     public float forgiveness = 0.2f;
 
