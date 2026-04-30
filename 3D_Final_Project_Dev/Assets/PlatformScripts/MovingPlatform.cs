@@ -7,13 +7,14 @@ public class MovingPlatform : MonoBehaviour
     public float speed = 2f;
 
     [Header("Detection Settings")]
-    public Vector3 detectionOffset = new Vector3(0, 1.1f, 0); // Positioned above the platform
-    public Vector3 detectionSize = new Vector3(1f, 0.5f, 1f); 
+    public Vector3 detectionOffset = new Vector3(0, 1.1f, 0);
+    public Vector3 detectionSize = new Vector3(2f, 1f, 2f);
 
     private Vector3 startPos;
     private Vector3 lastPos;
     private Vector3 platformDelta;
-    private CharacterController playerController;
+
+    private bool playerOnPlatform;
 
     void Start()
     {
@@ -23,51 +24,43 @@ public class MovingPlatform : MonoBehaviour
 
     void Update()
     {
-        // 1. Calculate Platform Movement
+        // 1. Move platform
         float movement = Mathf.PingPong(Time.time * speed, moveDistance);
         transform.position = startPos + moveDirection.normalized * movement;
 
-        // 2. Calculate the change in position (Delta)
+        // 2. Calculate delta movement
         platformDelta = transform.position - lastPos;
         lastPos = transform.position;
 
-        // 3. Find the player using their Tag
-        FindPlayerViaTag();
-    }
+        // 3. Check if player is on platform
+        playerOnPlatform = CheckForPlayer();
 
-    void LateUpdate()
-    {
-        // 4. If the player is on us, move them by the delta
-        if (playerController != null)
+        // 4. Apply movement INTO MasterMovement BEFORE final move
+        if (playerOnPlatform)
         {
-            playerController.Move(platformDelta);
+            MasterMovement.Instance.frameDisplacement += platformDelta;
         }
     }
 
-    void FindPlayerViaTag()
+    bool CheckForPlayer()
     {
-        // This looks at every collider inside the box
-        Collider[] hitColliders = Physics.OverlapBox(transform.position + detectionOffset, detectionSize / 2);
-        
-        bool foundPlayer = false;
+        Collider[] hits = Physics.OverlapBox(
+            transform.position + detectionOffset,
+            detectionSize / 2,
+            Quaternion.identity
+        );
 
-        foreach (var hit in hitColliders)
+        foreach (var hit in hits)
         {
             if (hit.CompareTag("Player"))
             {
-                playerController = hit.GetComponent<CharacterController>();
-                foundPlayer = true;
-                break; // Stop looking once we find the player
+                return true;
             }
         }
 
-        if (!foundPlayer)
-        {
-            playerController = null;
-        }
+        return false;
     }
 
-    // This helps you see the detection zone in the Scene view
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;

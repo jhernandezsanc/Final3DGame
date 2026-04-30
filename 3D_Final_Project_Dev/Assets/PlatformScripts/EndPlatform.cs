@@ -6,63 +6,71 @@ public class EndPlatform : MonoBehaviour
     public Vector3 winRespawnPoint = new Vector3(0, 10, 0);
 
     [Header("Detection Settings")]
-    public Vector3 detectionOffset = new Vector3(0, 1.1f, 0); 
+    public Vector3 detectionOffset = new Vector3(0, 1.1f, 0);
     public Vector3 detectionSize = new Vector3(2f, 1f, 2f);
 
+    public float forgiveness = 0.2f;
+
     private float timer = 0f;
-    private PlayerMovement playerScript;
+    private float lastSeenTime = -999f;
+
+    private bool playerIsOnMe;
 
     void Update()
     {
-        // 1. Check if the player is physically in the zone above this platform
-        Collider[] hitColliders = Physics.OverlapBox(transform.position + detectionOffset, detectionSize / 2);
-        
-        bool playerIsOnMe = false;
+        Collider[] hits = Physics.OverlapBox(
+            transform.position + detectionOffset,
+            detectionSize / 2
+        );
 
-        foreach (var hit in hitColliders)
+        playerIsOnMe = false;
+
+        foreach (var hit in hits)
         {
             if (hit.CompareTag("Player"))
             {
-                // Cache the script so we don't have to look it up every frame
-                if (playerScript == null) 
-                    playerScript = hit.GetComponent<PlayerMovement>();
-                
                 playerIsOnMe = true;
                 break;
             }
         }
 
-        // 2. The Logic: Must be in the zone AND the script must report isGrounded = true
-        if (playerIsOnMe && playerScript != null && playerScript.isGrounded)
+        if (playerIsOnMe)
         {
+            lastSeenTime = Time.time;
             timer += Time.deltaTime;
 
             if (timer >= timeToWin)
             {
-                TeleportPlayer();
+                Debug.Log("WIN TRIGGERED");
+                TeleportPlayer(hit: true);
             }
         }
         else
         {
-            // If they jump (isGrounded becomes false) or leave the zone, the timer resets
-            timer = 0f;
+            if (Time.time - lastSeenTime > forgiveness)
+            {
+                if (timer != 0f)
+                    Debug.Log("TIMER RESET");
+
+                timer = 0f;
+            }
         }
     }
 
-    private void TeleportPlayer()
+    private void TeleportPlayer(bool hit)
     {
         timer = 0f;
-        CharacterController cc = playerScript.GetComponent<CharacterController>();
-        
+
+        CharacterController cc = FindObjectOfType<CharacterController>();
+
         if (cc != null)
         {
             cc.enabled = false;
-            playerScript.transform.position = winRespawnPoint;
+            cc.transform.position = winRespawnPoint;
             cc.enabled = true;
         }
     }
 
-    // Visual aid in the Scene view
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;
