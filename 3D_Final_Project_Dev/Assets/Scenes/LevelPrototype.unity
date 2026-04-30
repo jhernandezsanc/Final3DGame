@@ -330,7 +330,7 @@ GameObject:
   - component: {fileID: 341310564}
   - component: {fileID: 341310563}
   - component: {fileID: 341310562}
-  - component: {fileID: 341310561}
+  - component: {fileID: 341310566}
   m_Layer: 0
   m_Name: Trampoline
   m_TagString: Untagged
@@ -338,19 +338,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &341310561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 341310560}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c0fa259f1394d8640b9bd171e8576eeb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Trampoline
-  bounceStrength: 15
 --- !u!65 &341310562
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -444,6 +431,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &341310566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 341310560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0fa259f1394d8640b9bd171e8576eeb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Trampoline
+  bounceStrength: 20
 --- !u!1 &964250051
 GameObject:
   m_ObjectHideFlags: 0

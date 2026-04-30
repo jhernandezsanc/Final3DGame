@@ -2,24 +2,36 @@ using UnityEngine;
 
 public class Trampoline : MonoBehaviour
 {
-    public float bounceStrength = 15f;
+    [Header("Bounce Settings")]
+    public float bounceStrength = 20f;
 
     private void OnTriggerEnter(Collider other)
     {
-        // Only react to player
+        // Make sure the player hit the trampoline
         if (!other.CompareTag("Player")) return;
 
-        // Optional safety check: ensure it's coming from above
-        if (other.transform.position.y < transform.position.y) return;
+        // Get the player's RecoilController
+        RecoilController recoil = other.GetComponent<RecoilController>();
+        if (recoil == null) return;
 
-        Vector3 forcePos = transform.position;
+        /*
+         * transform.up = the direction of the TOP face of the trampoline
+         * This automatically works even if the trampoline is tilted/rotated
+         */
 
-        // Optional outward push based on contact direction
-        Vector3 outward = other.transform.position - transform.position;
-        outward.y = 0f;
+        Vector3 launchDirection = transform.up;
 
-        Vector3 adjustedForcePos = forcePos - outward * 0.2f;
+        /*
+         * Recoil(forcePos) pushes AWAY from forcePos:
+         *
+         * accelDir = playerPos - forcePos
+         *
+         * So to launch the player upward along transform.up,
+         * we fake a force position slightly BELOW the trampoline.
+         */
 
-        RecoilController.Instance.Recoil(adjustedForcePos, bounceStrength);
+        Vector3 fakeForcePosition = other.transform.position - launchDirection;
+
+        recoil.Recoil(fakeForcePosition, bounceStrength);
     }
 }
