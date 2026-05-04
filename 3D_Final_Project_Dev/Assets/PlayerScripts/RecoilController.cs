@@ -30,6 +30,7 @@ public class RecoilController : MonoBehaviour
         {
             recoilStrength = recoilStrength / 10;
         }
+        playerMovement.ResetVertical(); //stops gravity accumulation problem
         Vector3 playerPos = transform.position;
         Vector3 accelDir = playerPos - forcePos;
         speed += accelDir.normalized * recoilStrength;
