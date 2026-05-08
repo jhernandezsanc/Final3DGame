@@ -77,4 +77,9 @@ public class PlayerMovement : MonoBehaviour
 
         lastPosition = gameObject.transform.position;
     }
+
+    public void ResetVertical()
+    {
+        velocity.y = 0f; //helper function for jump coyote time
+    }
 }
