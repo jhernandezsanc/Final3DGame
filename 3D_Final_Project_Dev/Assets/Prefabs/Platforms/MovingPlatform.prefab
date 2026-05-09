@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9218071764449256022}
   - component: {fileID: 4974493499172214309}
   - component: {fileID: 6162810384542820176}
-  - component: {fileID: 1068143216013125145}
+  - component: {fileID: 6991054965015057041}
   m_Layer: 3
   m_Name: MovingPlatform
   m_TagString: Untagged
@@ -68,7 +68,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 3fd5ee2960b6c654383312ec0a5d9b96, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -113,7 +113,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &1068143216013125145
+--- !u!114 &6991054965015057041
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -124,9 +124,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c13c82d35319f5b4d88440c051d3c235, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: '::'
-  moveDirection: {x: 0, y: 0, z: 1}
-  moveDistance: 10
-  speed: 10
+  m_EditorClassIdentifier: Assembly-CSharp::MovingPlatform
+  moveDirection: {x: 1, y: 0, z: 0}
+  moveDistance: 5
+  speed: 2
   detectionOffset: {x: 0, y: 0.5, z: 0}
   detectionSize: {x: 10, y: 0.5, z: 10}
+  thrusterFX: {fileID: 0}
