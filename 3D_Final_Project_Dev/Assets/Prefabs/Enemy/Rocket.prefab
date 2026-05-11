@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3334952763613702078}
   - component: {fileID: 5278599301435089143}
   - component: {fileID: 2161844153152808612}
-  - component: {fileID: 7728097983990809571}
+  - component: {fileID: 70489218246094010}
   m_Layer: 0
   m_Name: Rocket
   m_TagString: Untagged
@@ -85,7 +85,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &7728097983990809571
+--- !u!114 &70489218246094010
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -98,6 +98,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Rocket
   lifeTime: 5
+  explosionRadius: 4
+  knockbackForce: 100
+  explosionSound: {fileID: 8300000, guid: ca56365efcadaf14388a0a6b06f86431, type: 3}
 --- !u!1 &5196199351902025819
 GameObject:
   m_ObjectHideFlags: 0
