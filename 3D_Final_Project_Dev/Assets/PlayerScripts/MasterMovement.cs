@@ -23,13 +23,11 @@ public class MasterMovement : MonoBehaviour
         }
         controller = GetComponent<CharacterController>();
     }
-    void Update()
-    {
-        frameDisplacement = Vector3.zero;
-    }
 
     private void LateUpdate()
     {
         controller.Move(frameDisplacement);
+
+        frameDisplacement = Vector3.zero;
     }
 }
