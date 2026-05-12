@@ -1,7 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using System.Collections.Generic;
 
 public class SettingsController : MonoBehaviour
 {
@@ -28,13 +26,10 @@ public class SettingsController : MonoBehaviour
 
     // ─── Display ──────────────────────────────────────────────────
     [Header("Display")]
-    [SerializeField] private TMP_Dropdown resolutionDropdown;
-    [SerializeField] private Toggle fullscreenToggle;
     [SerializeField] private Slider brightnessSlider;
     [SerializeField] private Image brightnessOverlay;
 
     [Header("Display Defaults")]
-    [SerializeField] private bool defaultFullscreen                     = true;
     [SerializeField][Range(0f, 1f)] private float defaultBrightness    = 1f;
 
     // ─── Gameplay ─────────────────────────────────────────────────
@@ -59,11 +54,9 @@ public class SettingsController : MonoBehaviour
     private const string MASTER_VOL_PREF  = "MasterVolume";
     private const string MUSIC_VOL_PREF   = "MusicVolume";
     private const string SFX_VOL_PREF     = "SFXVolume";
-    private const string FULLSCREEN_PREF  = "Fullscreen";
     private const string BRIGHTNESS_PREF  = "Brightness";
     private const string SENSITIVITY_PREF = "Sensitivity";
     private const string INVERT_Y_PREF    = "InvertY";
-    private const string RESOLUTION_PREF  = "ResolutionIndex";
 
     // ─── Statics (read by PlayerController) ───────────────────────
     public static float CurrentSensitivity { get; private set; } = 2f;
@@ -73,7 +66,6 @@ public class SettingsController : MonoBehaviour
     // ─── Internal ─────────────────────────────────────────────────
     private bool _initialized  = false;
     private bool _initializing = false;
-    private Resolution[] _availableResolutions;
 
     // =============================================================
     // Lifecycle
@@ -90,7 +82,6 @@ public class SettingsController : MonoBehaviour
         _initialized = true;
 
         ApplySliderRange(sensitivitySlider, sensitivityMin, sensitivityMax);
-        BuildResolutionDropdown();
         LoadAndApplyAll();
         RegisterListeners();
     }
@@ -117,31 +108,6 @@ public class SettingsController : MonoBehaviour
         slider.maxValue = max;
     }
 
-    private void BuildResolutionDropdown()
-    {
-        if (resolutionDropdown == null) return;
-
-        _availableResolutions = Screen.resolutions;
-        resolutionDropdown.ClearOptions();
-
-        List<string> options = new List<string>();
-        int currentIndex = 0;
-
-        for (int i = 0; i < _availableResolutions.Length; i++)
-        {
-            string option = $"{_availableResolutions[i].width} x {_availableResolutions[i].height} @ {_availableResolutions[i].refreshRateRatio.numerator}Hz";
-            options.Add(option);
-
-            if (_availableResolutions[i].width  == Screen.currentResolution.width &&
-                _availableResolutions[i].height == Screen.currentResolution.height)
-                currentIndex = i;
-        }
-
-        resolutionDropdown.AddOptions(options);
-        resolutionDropdown.value = PlayerPrefs.GetInt(RESOLUTION_PREF, currentIndex);
-        resolutionDropdown.RefreshShownValue();
-    }
-
     private void LoadAndApplyAll()
     {
         _initializing = true;
@@ -160,13 +126,9 @@ public class SettingsController : MonoBehaviour
         ApplySFXVolume(sfxVol);
 
         // Display
-        bool  isFullscreen = PlayerPrefs.GetInt(FULLSCREEN_PREF, defaultFullscreen ? 1 : 0) == 1;
-        float brightness   = PlayerPrefs.GetFloat(BRIGHTNESS_PREF, defaultBrightness);
+        float brightness = PlayerPrefs.GetFloat(BRIGHTNESS_PREF, defaultBrightness);
 
-        SetToggle(fullscreenToggle, isFullscreen);
         SetSlider(brightnessSlider, brightness);
-
-        ApplyFullscreen(isFullscreen);
         ApplyBrightness(brightness);
 
         // Gameplay
@@ -192,22 +154,18 @@ public class SettingsController : MonoBehaviour
         masterVolumeSlider?.onValueChanged.RemoveListener(OnMasterVolumeChanged);
         musicVolumeSlider?.onValueChanged.RemoveListener(OnMusicVolumeChanged);
         sfxVolumeSlider?.onValueChanged.RemoveListener(OnSFXVolumeChanged);
-        fullscreenToggle?.onValueChanged.RemoveListener(OnFullscreenToggled);
         brightnessSlider?.onValueChanged.RemoveListener(OnBrightnessChanged);
         sensitivitySlider?.onValueChanged.RemoveListener(OnSensitivityChanged);
         invertYToggle?.onValueChanged.RemoveListener(OnInvertYToggled);
         crosshairToggle?.onValueChanged.RemoveListener(OnCrosshairToggled);
-        resolutionDropdown?.onValueChanged.RemoveListener(OnResolutionChanged);
 
         masterVolumeSlider?.onValueChanged.AddListener(OnMasterVolumeChanged);
         musicVolumeSlider?.onValueChanged.AddListener(OnMusicVolumeChanged);
         sfxVolumeSlider?.onValueChanged.AddListener(OnSFXVolumeChanged);
-        fullscreenToggle?.onValueChanged.AddListener(OnFullscreenToggled);
         brightnessSlider?.onValueChanged.AddListener(OnBrightnessChanged);
         sensitivitySlider?.onValueChanged.AddListener(OnSensitivityChanged);
         invertYToggle?.onValueChanged.AddListener(OnInvertYToggled);
         crosshairToggle?.onValueChanged.AddListener(OnCrosshairToggled);
-        resolutionDropdown?.onValueChanged.AddListener(OnResolutionChanged);
     }
 
     // =============================================================
@@ -250,30 +208,12 @@ public class SettingsController : MonoBehaviour
     // Display Handlers
     // =============================================================
 
-    public void OnResolutionChanged(int index)
-    {
-        if (_initializing) return;
-        if (_availableResolutions == null || index >= _availableResolutions.Length) return;
-        Resolution res = _availableResolutions[index];
-        Screen.SetResolution(res.width, res.height, Screen.fullScreen);
-        PlayerPrefs.SetInt(RESOLUTION_PREF, index);
-    }
-
-    public void OnFullscreenToggled(bool isOn)
-    {
-        if (_initializing) return;
-        ApplyFullscreen(isOn);
-        PlayerPrefs.SetInt(FULLSCREEN_PREF, isOn ? 1 : 0);
-    }
-
     public void OnBrightnessChanged(float value)
     {
         if (_initializing) return;
         ApplyBrightness(value);
         PlayerPrefs.SetFloat(BRIGHTNESS_PREF, value);
     }
-
-    private void ApplyFullscreen(bool isOn) => Screen.fullScreen = isOn;
 
     private void ApplyBrightness(float value)
     {
@@ -338,11 +278,9 @@ public class SettingsController : MonoBehaviour
         PlayerPrefs.DeleteKey(MASTER_VOL_PREF);
         PlayerPrefs.DeleteKey(MUSIC_VOL_PREF);
         PlayerPrefs.DeleteKey(SFX_VOL_PREF);
-        PlayerPrefs.DeleteKey(FULLSCREEN_PREF);
         PlayerPrefs.DeleteKey(BRIGHTNESS_PREF);
         PlayerPrefs.DeleteKey(SENSITIVITY_PREF);
         PlayerPrefs.DeleteKey(INVERT_Y_PREF);
-        PlayerPrefs.DeleteKey(RESOLUTION_PREF);
         PlayerPrefs.DeleteKey(CROSSHAIR_PREF);
         _initialized = false;
         Initialize();

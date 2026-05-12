@@ -11,13 +11,19 @@ public class EndPlatform : MonoBehaviour
 
     public float forgiveness = 0.2f;
 
+    [Header("Level Complete")]
+    [SerializeField] private PauseMenuController pauseMenuController;
+
     private float timer = 0f;
     private float lastSeenTime = -999f;
 
     private bool playerIsOnMe;
+    private bool _winTriggered = false;
 
     void Update()
     {
+        if (_winTriggered) return;
+
         Collider[] hits = Physics.OverlapBox(
             transform.position + detectionOffset,
             detectionSize / 2
@@ -42,6 +48,8 @@ public class EndPlatform : MonoBehaviour
             if (timer >= timeToWin)
             {
                 Debug.Log("WIN TRIGGERED");
+                _winTriggered = true;
+                TriggerLevelComplete();
                 TeleportPlayer(hit: true);
             }
         }
@@ -55,6 +63,16 @@ public class EndPlatform : MonoBehaviour
                 timer = 0f;
             }
         }
+    }
+
+    private void TriggerLevelComplete()
+    {
+        if (pauseMenuController == null)
+        {
+            Debug.LogWarning("[EndPlatform] No PauseMenuController assigned.");
+            return;
+        }
+        pauseMenuController.ShowLevelComplete();
     }
 
     private void TeleportPlayer(bool hit)

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -9,6 +10,9 @@ public class PauseMenuController : MonoBehaviour
     [SerializeField] private GameObject pauseMenuPanel;
     [SerializeField] private GameObject optionsPanel;
     [SerializeField] private GameObject tutorialPanel;
+    [SerializeField] private GameObject levelCompletePanel;
+    [SerializeField] private GameObject crosshairObject;
+    [SerializeField] private Image menuBackdrop;
 
     [Header("Scene Settings")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
@@ -22,7 +26,16 @@ public class PauseMenuController : MonoBehaviour
     [Range(0f, 1f)]
     [SerializeField] private float menuVolume = 1f;
 
+    [Header("Save Toast")]
+    [SerializeField] private CanvasGroup saveToast;
+    [SerializeField] private float toastDuration = 2f;
+    [SerializeField] private float fadeDuration  = 0.3f;
+
+    [Header("Backdrop")]
+    [SerializeField][Range(0f, 1f)] private float backdropAlpha = 0.82f;
+
     private bool _isPaused = false;
+    private Coroutine _toastCoroutine;
 
     private const string VOLUME_PREF = "MasterVolume";
 
@@ -42,6 +55,14 @@ public class PauseMenuController : MonoBehaviour
         }
 
         InitVolumeSlider();
+
+        if (saveToast != null)
+        {
+            saveToast.alpha = 0f;
+            saveToast.gameObject.SetActive(false);
+        }
+
+        SetBackdrop(false);
     }
 
     void Update()
@@ -59,7 +80,6 @@ public class PauseMenuController : MonoBehaviour
 
     private void HandleEscapePressed()
     {
-        // Close whatever is open, in priority order
         if (tutorialPanel != null && tutorialPanel.activeSelf)
         {
             CloseTutorial();
@@ -72,8 +92,19 @@ public class PauseMenuController : MonoBehaviour
             return;
         }
 
-        // Nothing else open — toggle the pause menu itself
         TogglePause();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Backdrop
+    // ─────────────────────────────────────────────────────────────
+
+    private void SetBackdrop(bool visible)
+    {
+        if (menuBackdrop == null) return;
+        Color c = menuBackdrop.color;
+        c.a = visible ? backdropAlpha : 0f;
+        menuBackdrop.color = c;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -128,6 +159,18 @@ public class PauseMenuController : MonoBehaviour
         Cursor.lockState = paused ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = paused;
 
+        if (crosshairObject != null)
+        {
+            if (paused)
+                crosshairObject.SetActive(false);
+            else
+                crosshairObject.SetActive(PlayerPrefs.GetInt("CrosshairEnabled", 1) == 1);
+        }
+
+        if (!paused && saveToast != null)
+            StopToast();
+
+        SetBackdrop(paused);
         PlayClick();
     }
 
@@ -145,6 +188,7 @@ public class PauseMenuController : MonoBehaviour
     {
         PlayClick();
         SaveGame();
+        ShowSaveToast();
     }
 
     public void OnLoadGameClicked()
@@ -166,6 +210,7 @@ public class PauseMenuController : MonoBehaviour
         if (optionsPanel == null) return;
         pauseMenuPanel.SetActive(false);
         optionsPanel.SetActive(true);
+        SetBackdrop(true);
         optionsPanel.GetComponent<SettingsController>()?.Initialize();
     }
 
@@ -174,12 +219,38 @@ public class PauseMenuController : MonoBehaviour
         PlayClick();
         optionsPanel.SetActive(false);
         pauseMenuPanel.SetActive(true);
+        SetBackdrop(true);
     }
 
     public void OnQuitToMenuClicked()
     {
         PlayClick();
         StartCoroutine(QuitToMenuAfterSound());
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Back Button
+    // ─────────────────────────────────────────────────────────────
+
+    public void OnBackClicked()
+    {
+        PlayClick();
+
+        if (tutorialPanel != null && tutorialPanel.activeSelf)
+        {
+            tutorialPanel.SetActive(false);
+            pauseMenuPanel.SetActive(true);
+            SetBackdrop(true);
+            return;
+        }
+
+        if (optionsPanel != null && optionsPanel.activeSelf)
+        {
+            optionsPanel.SetActive(false);
+            pauseMenuPanel.SetActive(true);
+            SetBackdrop(true);
+            return;
+        }
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -192,6 +263,7 @@ public class PauseMenuController : MonoBehaviour
         PlayClick();
         pauseMenuPanel.SetActive(false);
         tutorialPanel.SetActive(true);
+        SetBackdrop(true);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -203,12 +275,99 @@ public class PauseMenuController : MonoBehaviour
         tutorialPanel.SetActive(false);
 
         if (_isPaused)
+        {
             pauseMenuPanel.SetActive(true);
+            SetBackdrop(true);
+        }
         else
         {
+            SetBackdrop(false);
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Save Toast
+    // ─────────────────────────────────────────────────────────────
+
+    private void ShowSaveToast()
+    {
+        if (saveToast == null) return;
+
+        if (_toastCoroutine != null)
+            StopCoroutine(_toastCoroutine);
+
+        _toastCoroutine = StartCoroutine(ToastRoutine());
+    }
+
+    private void StopToast()
+    {
+        if (_toastCoroutine != null)
+        {
+            StopCoroutine(_toastCoroutine);
+            _toastCoroutine = null;
+        }
+
+        saveToast.alpha = 0f;
+        saveToast.gameObject.SetActive(false);
+    }
+
+    private IEnumerator ToastRoutine()
+    {
+        saveToast.gameObject.SetActive(true);
+        saveToast.alpha = 0f;
+
+        float t = 0f;
+        while (t < fadeDuration)
+        {
+            t += Time.unscaledDeltaTime;
+            saveToast.alpha = Mathf.Clamp01(t / fadeDuration);
+            yield return null;
+        }
+        saveToast.alpha = 1f;
+
+        yield return new WaitForSecondsRealtime(toastDuration);
+
+        t = 0f;
+        while (t < fadeDuration)
+        {
+            t += Time.unscaledDeltaTime;
+            saveToast.alpha = Mathf.Clamp01(1f - (t / fadeDuration));
+            yield return null;
+        }
+
+        saveToast.alpha = 0f;
+        saveToast.gameObject.SetActive(false);
+        _toastCoroutine = null;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Level Complete
+    // ─────────────────────────────────────────────────────────────
+
+    public void ShowLevelComplete()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        SetBackdrop(true);
+
+        if (levelCompletePanel != null)
+            levelCompletePanel.SetActive(true);
+
+        StartCoroutine(LevelCompleteRoutine());
+    }
+
+    private IEnumerator LevelCompleteRoutine()
+    {
+        yield return new WaitForSecondsRealtime(10f);
+
+        if (levelCompletePanel != null)
+            levelCompletePanel.SetActive(false);
+
+        SetBackdrop(false);
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -236,7 +395,7 @@ public class PauseMenuController : MonoBehaviour
     // Coroutines
     // ─────────────────────────────────────────────────────────────
 
-    private System.Collections.IEnumerator QuitToMenuAfterSound()
+    private IEnumerator QuitToMenuAfterSound()
     {
         float delay = buttonClickSound != null ? buttonClickSound.length : 0.15f;
         yield return new WaitForSecondsRealtime(delay);
