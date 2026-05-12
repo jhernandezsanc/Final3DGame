@@ -13,10 +13,11 @@ public class PlayerMovement : MonoBehaviour
 
     public float groundDistance = 0.4f;
     public LayerMask groundMask;
+    Vector3 knockbackVelocity; //velocity for knockback from rockets
 
     Vector3 velocity;
 
-    bool isGrounded;
+    [HideInInspector]public bool isGrounded;//made public for recoil but hidden in inspector
     bool isMoving; //bool for later use
 
     private Vector3 lastPosition = new Vector3(0f, 0f, 0f);
@@ -76,5 +77,21 @@ public class PlayerMovement : MonoBehaviour
         }
 
         lastPosition = gameObject.transform.position;
+
+        if (knockbackVelocity.magnitude > 0.1f)
+        {
+            controller.Move(knockbackVelocity * Time.deltaTime);
+            knockbackVelocity = Vector3.Lerp(knockbackVelocity, Vector3.zero, 5f * Time.deltaTime);
+        }
+    }
+
+    public void ResetVertical()
+    {
+        velocity.y = 0f; //helper function for jump coyote time
+    }
+
+    public void ApplyKnockback(Vector3 direction, float force)
+    {
+        knockbackVelocity = direction.normalized * force;
     }
 }
