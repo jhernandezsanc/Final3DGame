@@ -5,6 +5,11 @@ using System.Collections.Generic;
 
 public class SettingsController : MonoBehaviour
 {
+    // ─── Panel References ─────────────────────────────────────────
+    [Header("Panel References")]
+    [SerializeField] private GameObject optionsPanel;
+    [SerializeField] private GameObject pauseMenuPanel;
+
     // ─── Crosshair ────────────────────────────────────────────────
     [Header("Crosshair")]
     [SerializeField] private GameObject crosshair;
@@ -66,12 +71,12 @@ public class SettingsController : MonoBehaviour
     public static bool  InvertY            { get; private set; } = false;
 
     // ─── Internal ─────────────────────────────────────────────────
-    private bool _initialized  = false;     // guards Initialize()
-    private bool _initializing = false;     // guards listener registration during load
+    private bool _initialized  = false;
+    private bool _initializing = false;
     private Resolution[] _availableResolutions;
 
     // =============================================================
-    // Start
+    // Lifecycle
     // =============================================================
 
     void Start()
@@ -88,6 +93,17 @@ public class SettingsController : MonoBehaviour
         BuildResolutionDropdown();
         LoadAndApplyAll();
         RegisterListeners();
+    }
+
+    // =============================================================
+    // Back Button
+    // =============================================================
+
+    public void OnBackClicked()
+    {
+        PlayerPrefs.Save();
+        optionsPanel.SetActive(false);
+        pauseMenuPanel.SetActive(true);
     }
 
     // =============================================================
@@ -328,7 +344,7 @@ public class SettingsController : MonoBehaviour
         PlayerPrefs.DeleteKey(INVERT_Y_PREF);
         PlayerPrefs.DeleteKey(RESOLUTION_PREF);
         PlayerPrefs.DeleteKey(CROSSHAIR_PREF);
-        _initialized = false;   // allow full re-init with defaults
+        _initialized = false;
         Initialize();
         Debug.Log("[Settings] Reset to defaults.");
     }
