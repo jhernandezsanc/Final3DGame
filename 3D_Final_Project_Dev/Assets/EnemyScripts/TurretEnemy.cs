@@ -3,49 +3,91 @@ using UnityEngine;
 public class TurretEnemy : MonoBehaviour
 {
     public Transform player;
+    public Transform turretHead;
     public Transform firePoint;
     public GameObject rocketPrefab;
 
     public float shootRange = 15f;
     public float fireRate = 2f;
+    public float rocketForce = 20f;
+    public float scanSpeed = 40f;
+    public float turnSpeed = 5f;
 
-    private float fireTimer;
+    private float fireCooldown;
 
-    private void Start() {
-        if (player == null) {
+    void Start()
+    {
+        if (player == null)
+        {
             GameObject p = GameObject.FindGameObjectWithTag("Player");
             if (p != null) player = p.transform;
         }
     }
 
-    private void Update() {
+    void Update()
+    {
+        if (turretHead == null)
+        {
+            Debug.LogError("TurretHead is NOT assigned!");
+            return;
+        }
+
         if (player == null) return;
 
-        Vector3 lookDir = player.position - transform.position;
-        lookDir.y = 0f;
+        float distance = Vector3.Distance(turretHead.position, player.position);
 
-        if (lookDir != Vector3.zero) {
-            transform.rotation = Quaternion.LookRotation(lookDir);
+        if (distance <= shootRange)
+        {
+            AimAtPlayer();
+
+            if (fireCooldown <= 0f)
+            {
+                Shoot();
+                fireCooldown = 1f / fireRate;
+            }
+        }
+        else
+        {
+            ScanArea();
         }
 
-        float distance = Vector3.Distance(transform.position, player.position);
-
-        fireTimer -= Time.deltaTime;
-
-        if (distance <= shootRange && fireTimer <= 0f) {
-            Shoot();
-            fireTimer = fireRate;
-        }
+        fireCooldown -= Time.deltaTime;
     }
 
-    void Shoot() {
-        if (rocketPrefab == null || firePoint == null) return;
+    void AimAtPlayer()
+    {
+        Vector3 direction = player.position - turretHead.position;
+        direction.y = 0f;
 
-        GameObject rocket = Instantiate(rocketPrefab, firePoint.position, firePoint.rotation);
+        if (direction == Vector3.zero) return;
 
-        Rocket rocketScript = rocket.GetComponent<Rocket>();
-        if (rocketScript != null) {
-            rocketScript.SetTarget(player);
+        Quaternion targetRotation = Quaternion.LookRotation(direction);
+
+        turretHead.rotation = Quaternion.Slerp(
+            turretHead.rotation,
+            targetRotation,
+            turnSpeed * Time.deltaTime
+        );
+    }
+
+    void ScanArea()
+    {
+        turretHead.Rotate(0f, scanSpeed * Time.deltaTime, 0f);
+    }
+
+    void Shoot()
+    {
+        GameObject rocket = Instantiate(
+            rocketPrefab,
+            firePoint.position,
+            firePoint.rotation
+        );
+
+        Rigidbody rb = rocket.GetComponent<Rigidbody>();
+
+        if (rb != null)
+        {
+            rb.linearVelocity = firePoint.forward * rocketForce;
         }
     }
 }

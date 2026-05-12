@@ -667,6 +667,10 @@ MonoBehaviour:
   player: {fileID: 0}
   moveSpeed: 2
   stopDistance: 1.5
+  explodeDistance: 2
+  explosionRadius: 5
+  knockbackForce: 100
+  explosionSound: {fileID: 8300000, guid: ca56365efcadaf14388a0a6b06f86431, type: 3}
 --- !u!1 &9030862325351499319
 GameObject:
   m_ObjectHideFlags: 0

@@ -2,32 +2,46 @@ using UnityEngine;
 
 public class Rocket : MonoBehaviour
 {
-    public float speed = 10f;
+    [Header("Explosion")]
     public float lifeTime = 5f;
-    public int damage = 20;
+    public float explosionRadius = 4f;
+    public float knockbackForce = 12f;
+    public AudioClip explosionSound;
 
-    private Transform target;
-
-    public void SetTarget(Transform newTarget) {
-        target = newTarget;
-    }
-
-    private void Start() {
+    void Start()
+    {
         Destroy(gameObject, lifeTime);
     }
 
-    private void Update() {
-        if (target == null) {
-            transform.position += transform.forward * speed * Time.deltaTime;
-            return;
+    private void OnCollisionEnter(Collision collision)
+    {
+        Explode();
+    }
+
+    void Explode()
+    {
+        // Play explosion sound
+        if (explosionSound != null)
+        {
+            AudioSource.PlayClipAtPoint(explosionSound, transform.position);
         }
 
-        Vector3 direction = (target.position - transform.position).normalized;
-        transform.position += direction * speed * Time.deltaTime;
+        // Check everything nearby
+        Collider[] hits = Physics.OverlapSphere(transform.position, explosionRadius);
 
-        if (direction != Vector3.zero) {
-            transform.rotation = Quaternion.LookRotation(direction);
+        foreach (Collider hit in hits)
+        {
+            PlayerMovement player = hit.GetComponent<PlayerMovement>();
+
+            if (player != null)
+            {
+                Vector3 pushDirection = player.transform.position - transform.position;
+                pushDirection.y = 0.5f;
+
+                player.ApplyKnockback(pushDirection, knockbackForce);
+            }
         }
+
+        Destroy(gameObject);
     }
 }
-
