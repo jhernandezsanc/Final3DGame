@@ -127,6 +127,7 @@ GameObject:
   - component: {fileID: 461767421574141607}
   - component: {fileID: 8361463567366416214}
   - component: {fileID: 7490034976236478566}
+  - component: {fileID: 2774282592949955276}
   m_Layer: 0
   m_Name: ShortRange
   m_TagString: Untagged
@@ -241,6 +242,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ed36a849817df64e8a03d70ff61e5dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HurtBoxToggles
+--- !u!114 &2774282592949955276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1622337051205532038}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76223985d013c2a41bc174728c5f8af8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerRangeZone
+  rangeType: 0
 --- !u!1 &1881061310675586720
 GameObject:
   m_ObjectHideFlags: 0
@@ -513,6 +527,7 @@ GameObject:
   - component: {fileID: 3113953331171615164}
   - component: {fileID: 4881177813871504222}
   - component: {fileID: 6686969050089678963}
+  - component: {fileID: 1055415058189318962}
   m_Layer: 0
   m_Name: LongRange
   m_TagString: Untagged
@@ -627,6 +642,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ed36a849817df64e8a03d70ff61e5dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HurtBoxToggles
+--- !u!114 &1055415058189318962
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5168948753423435787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76223985d013c2a41bc174728c5f8af8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerRangeZone
+  rangeType: 1
 --- !u!1 &7230212653351430677
 GameObject:
   m_ObjectHideFlags: 0
