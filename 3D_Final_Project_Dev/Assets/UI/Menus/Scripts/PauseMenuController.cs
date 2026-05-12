@@ -1,72 +1,119 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using TMPro;
+using UnityEngine.InputSystem;
 
 public class PauseMenuController : MonoBehaviour
 {
     [Header("Panel References")]
     [SerializeField] private GameObject pauseMenuPanel;
-    [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private GameObject optionsPanel;
     [SerializeField] private GameObject tutorialPanel;
-
-    [Header("Tab Content")]
-    [SerializeField] private GameObject menuTab;
-    [SerializeField] private GameObject settingsTab;
-    [SerializeField] private GameObject controlsTab;
 
     [Header("Scene Settings")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
 
+    [Header("Volume")]
+    [SerializeField] private Slider volumeSlider;
+
     [Header("Audio")]
     [SerializeField] private AudioSource menuAudioSource;
-    [SerializeField] private AudioClip clickSound;
-    [SerializeField] private AudioClip resumeSound;
-    [SerializeField] private AudioClip saveSound;
-    [SerializeField] private AudioClip loadSound;
-    [SerializeField] private AudioClip tabSwitchSound;
-    [SerializeField] private AudioClip openMenuSound;
-    [SerializeField] private AudioClip closeMenuSound;
-    [SerializeField] private AudioClip errorSound;
-    [SerializeField] private AudioClip quitSound;
+    [SerializeField] private AudioClip buttonClickSound;
     [Range(0f, 1f)]
     [SerializeField] private float menuVolume = 1f;
 
     private bool _isPaused = false;
 
-    // ─── Lifecycle ────────────────────────────────────────────────
+    private const string VOLUME_PREF = "MasterVolume";
+
+    // ─────────────────────────────────────────────────────────────
+    // Lifecycle
+    // ─────────────────────────────────────────────────────────────
 
     void Start()
     {
         SetPauseState(false);
 
-        // If no AudioSource assigned, add one automatically
         if (menuAudioSource == null)
         {
             menuAudioSource = gameObject.AddComponent<AudioSource>();
             menuAudioSource.playOnAwake = false;
-            menuAudioSource.spatialBlend = 0f; // 2D sound, no 3D falloff
+            menuAudioSource.spatialBlend = 0f;
         }
+
+        InitVolumeSlider();
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-            TogglePause();
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+            HandleEscapePressed();
 
-        if (Input.GetKeyDown(KeyCode.T) && !_isPaused)
+        if (Keyboard.current.tKey.wasPressedThisFrame && !_isPaused)
             OpenTutorial();
     }
 
-    // ─── Audio ────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // Escape Handling
+    // ─────────────────────────────────────────────────────────────
 
-    private void PlaySound(AudioClip clip)
+    private void HandleEscapePressed()
     {
-        if (menuAudioSource == null || clip == null) return;
-        menuAudioSource.PlayOneShot(clip, menuVolume);
+        // Close whatever is open, in priority order
+        if (tutorialPanel != null && tutorialPanel.activeSelf)
+        {
+            CloseTutorial();
+            return;
+        }
+
+        if (optionsPanel != null && optionsPanel.activeSelf)
+        {
+            CloseOptions();
+            return;
+        }
+
+        // Nothing else open — toggle the pause menu itself
+        TogglePause();
     }
 
-    // ─── Pause State ──────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // Volume Slider
+    // ─────────────────────────────────────────────────────────────
+
+    private void InitVolumeSlider()
+    {
+        if (volumeSlider == null) return;
+
+        float saved = PlayerPrefs.GetFloat(VOLUME_PREF, 1f);
+        volumeSlider.minValue = 0f;
+        volumeSlider.maxValue = 1f;
+        volumeSlider.value = saved;
+        AudioListener.volume = saved;
+
+        volumeSlider.onValueChanged.RemoveAllListeners();
+        volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
+    }
+
+    public void OnVolumeChanged(float value)
+    {
+        AudioListener.volume = value;
+        PlayerPrefs.SetFloat(VOLUME_PREF, value);
+        PlayerPrefs.Save();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Audio
+    // ─────────────────────────────────────────────────────────────
+
+    private void PlayClick()
+    {
+        if (menuAudioSource == null || buttonClickSound == null) return;
+        menuAudioSource.PlayOneShot(buttonClickSound, menuVolume);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Pause State
+    // ─────────────────────────────────────────────────────────────
 
     public void TogglePause()
     {
@@ -81,97 +128,69 @@ public class PauseMenuController : MonoBehaviour
         Cursor.lockState = paused ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = paused;
 
-        if (paused)
-        {
-            PlaySound(openMenuSound);
-            ShowTab(menuTab);
-        }
-        else
-        {
-            PlaySound(closeMenuSound);
-        }
+        PlayClick();
     }
 
-    // ─── Button Handlers ──────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // Button Handlers
+    // ─────────────────────────────────────────────────────────────
 
     public void OnResumeClicked()
     {
-        PlaySound(resumeSound != null ? resumeSound : clickSound);
+        PlayClick();
         SetPauseState(false);
     }
 
     public void OnSaveGameClicked()
     {
-        PlaySound(saveSound != null ? saveSound : clickSound);
+        PlayClick();
         SaveGame();
     }
 
     public void OnLoadGameClicked()
     {
+        PlayClick();
+
         if (!PlayerPrefs.HasKey("SavedScene"))
         {
-            PlaySound(errorSound != null ? errorSound : clickSound);
             Debug.LogWarning("[PauseMenu] No save file found.");
             return;
         }
 
-        PlaySound(loadSound != null ? loadSound : clickSound);
         LoadGame();
     }
 
     public void OnOptionsClicked()
     {
-        PlaySound(tabSwitchSound != null ? tabSwitchSound : clickSound);
-        ShowTab(settingsTab);
+        PlayClick();
+        if (optionsPanel == null) return;
+        pauseMenuPanel.SetActive(false);
+        optionsPanel.SetActive(true);
+        optionsPanel.GetComponent<SettingsController>()?.Initialize();
+    }
+
+    public void CloseOptions()
+    {
+        PlayClick();
+        optionsPanel.SetActive(false);
+        pauseMenuPanel.SetActive(true);
     }
 
     public void OnQuitToMenuClicked()
     {
-        PlaySound(quitSound != null ? quitSound : clickSound);
-        // Small delay so sound plays before scene unloads
+        PlayClick();
         StartCoroutine(QuitToMenuAfterSound());
     }
 
-    public void OnQuitToDesktopClicked()
-    {
-        PlaySound(quitSound != null ? quitSound : clickSound);
-        StartCoroutine(QuitToDesktopAfterSound());
-    }
-
-    // ─── Tab Switching ────────────────────────────────────────────
-
-    public void ShowMenuTab()
-    {
-        PlaySound(tabSwitchSound != null ? tabSwitchSound : clickSound);
-        ShowTab(menuTab);
-    }
-
-    public void ShowSettingsTab()
-    {
-        PlaySound(tabSwitchSound != null ? tabSwitchSound : clickSound);
-        ShowTab(settingsTab);
-    }
-
-    public void ShowControlsTab()
-    {
-        PlaySound(tabSwitchSound != null ? tabSwitchSound : clickSound);
-        ShowTab(controlsTab);
-    }
-
-    private void ShowTab(GameObject targetTab)
-    {
-        menuTab?.SetActive(false);
-        settingsTab?.SetActive(false);
-        controlsTab?.SetActive(false);
-        targetTab?.SetActive(true);
-    }
-
-    // ─── Tutorial ─────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // Tutorial
+    // ─────────────────────────────────────────────────────────────
 
     public void OpenTutorial()
     {
         if (tutorialPanel == null) return;
-        PlaySound(openMenuSound != null ? openMenuSound : clickSound);
+        PlayClick();
+        pauseMenuPanel.SetActive(false);
         tutorialPanel.SetActive(true);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
@@ -180,16 +199,21 @@ public class PauseMenuController : MonoBehaviour
     public void CloseTutorial()
     {
         if (tutorialPanel == null) return;
-        PlaySound(closeMenuSound != null ? closeMenuSound : clickSound);
+        PlayClick();
         tutorialPanel.SetActive(false);
-        if (!_isPaused)
+
+        if (_isPaused)
+            pauseMenuPanel.SetActive(true);
+        else
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
     }
 
-    // ─── Save / Load ──────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // Save / Load
+    // ─────────────────────────────────────────────────────────────
 
     private void SaveGame()
     {
@@ -208,29 +232,21 @@ public class PauseMenuController : MonoBehaviour
         SceneManager.LoadScene(savedScene);
     }
 
-    // ─── Coroutines ───────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // Coroutines
+    // ─────────────────────────────────────────────────────────────
 
     private System.Collections.IEnumerator QuitToMenuAfterSound()
     {
-        // Wait for clip length, fall back to 0.15s if no clip assigned
-        float delay = quitSound != null ? quitSound.length : 0.15f;
+        float delay = buttonClickSound != null ? buttonClickSound.length : 0.15f;
         yield return new WaitForSecondsRealtime(delay);
         Time.timeScale = 1f;
         SceneManager.LoadScene(mainMenuSceneName);
     }
 
-    private System.Collections.IEnumerator QuitToDesktopAfterSound()
-    {
-        float delay = quitSound != null ? quitSound.length : 0.15f;
-        yield return new WaitForSecondsRealtime(delay);
-        #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-        #else
-            Application.Quit();
-        #endif
-    }
-
-    // ─── Cleanup ──────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    // Cleanup
+    // ─────────────────────────────────────────────────────────────
 
     void OnDestroy()
     {
