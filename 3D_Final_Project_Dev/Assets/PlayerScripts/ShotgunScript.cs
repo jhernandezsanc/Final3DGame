@@ -23,14 +23,12 @@ public class ShotgunScript : MonoBehaviour
     }
 
     public void Update()
-{
-    if (Time.timeScale == 0f) return;
-    
-    if (Mouse.current.leftButton.wasPressedThisFrame && !hasFired)
     {
-        Shoot();
+        if (Mouse.current.leftButton.wasPressedThisFrame && !hasFired)
+        {
+            Shoot();
+        }
     }
-}
 
     public void Shoot()
     {
@@ -44,7 +42,7 @@ public class ShotgunScript : MonoBehaviour
         {
             hurtBox.ToggleHurtBoxOn();
         }
-        AudioFXController.instance.PlayRandAudioFXClip(shotgunSounds, null, shotgunVolume * SettingsController.SFXVolume);
+        AudioFXController.instance.PlayRandAudioFXClip(shotgunSounds, null, shotgunVolume);
         Invoke("ReLoad", damageWindow);
         StopAllCoroutines();
         StartCoroutine(PlayCycle());
