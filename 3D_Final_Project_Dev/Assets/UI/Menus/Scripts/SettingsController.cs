@@ -38,13 +38,13 @@ public class SettingsController : MonoBehaviour
     [SerializeField] private Toggle invertYToggle;
 
     [Header("Gameplay Defaults")]
-    [SerializeField][Range(0.1f, 10f)] private float defaultSensitivity = 2f;
+    [SerializeField][Range(10f, 100f)] private float defaultSensitivity = 50f;
     [SerializeField] private bool defaultInvertY                         = false;
     [SerializeField] private bool defaultCrosshair                       = true;
 
     [Header("Sensitivity Slider Range")]
-    [SerializeField] private float sensitivityMin = 0.1f;
-    [SerializeField] private float sensitivityMax = 10f;
+    [SerializeField] private float sensitivityMin = 10f;
+    [SerializeField] private float sensitivityMax = 100f;
 
     [Header("Scene")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
@@ -59,7 +59,7 @@ public class SettingsController : MonoBehaviour
     private const string INVERT_Y_PREF    = "InvertY";
 
     // ─── Statics (read by PlayerController) ───────────────────────
-    public static float CurrentSensitivity { get; private set; } = 2f;
+    public static float CurrentSensitivity { get; private set; } = 50f;
     public static float SFXVolume          { get; private set; } = 1f;
     public static bool  InvertY            { get; private set; } = false;
 
@@ -81,6 +81,7 @@ public class SettingsController : MonoBehaviour
         if (_initialized) return;
         _initialized = true;
 
+        ApplySliderRange(masterVolumeSlider, 0f, 1f);
         ApplySliderRange(sensitivitySlider, sensitivityMin, sensitivityMax);
         LoadAndApplyAll();
         RegisterListeners();
@@ -179,6 +180,15 @@ public class SettingsController : MonoBehaviour
         PlayerPrefs.SetFloat(MASTER_VOL_PREF, value);
     }
 
+    public void SyncMasterVolume(float value)
+    {
+        if (masterVolumeSlider == null) return;
+        Debug.Log("[Settings] SyncMasterVolume called with value: " + value);
+        masterVolumeSlider.onValueChanged.RemoveListener(OnMasterVolumeChanged);
+        masterVolumeSlider.value = value;
+        masterVolumeSlider.onValueChanged.AddListener(OnMasterVolumeChanged);
+    }
+
     public void OnMusicVolumeChanged(float value)
     {
         if (_initializing) return;
@@ -197,9 +207,8 @@ public class SettingsController : MonoBehaviour
 
     private void ApplyMusicVolume(float value)
     {
-        GameObject musicObj = GameObject.FindWithTag("Music");
-        if (musicObj != null)
-            musicObj.GetComponent<AudioSource>()?.SetVolumeIfExists(value);
+        if (MusicHandler.musicInstance != null)
+            MusicHandler.musicInstance.volume = value;
     }
 
     private void ApplySFXVolume(float value) => SFXVolume = value;
@@ -261,6 +270,8 @@ public class SettingsController : MonoBehaviour
     {
         if (crosshair != null)
             crosshair.SetActive(isOn);
+        else
+            PauseMenuController.Instance?.SetCrosshairVisible(isOn);
     }
 
     // =============================================================

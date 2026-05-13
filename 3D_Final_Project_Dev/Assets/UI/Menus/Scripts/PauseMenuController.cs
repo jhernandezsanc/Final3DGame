@@ -11,11 +11,16 @@ public class PauseMenuController : MonoBehaviour
     [SerializeField] private GameObject optionsPanel;
     [SerializeField] private GameObject tutorialPanel;
     [SerializeField] private GameObject levelCompletePanel;
+    [SerializeField] private GameObject deathPanel;
     [SerializeField] private GameObject crosshairObject;
     [SerializeField] private Image menuBackdrop;
 
     [Header("Scene Settings")]
     [SerializeField] private string mainMenuSceneName = "MainMenu";
+
+    [Header("Level Complete Scenes")]
+    [SerializeField] private Object currentLevelScene;
+    [SerializeField] private Object levelSelectScene;
 
     [Header("Volume")]
     [SerializeField] private Slider volumeSlider;
@@ -31,13 +36,28 @@ public class PauseMenuController : MonoBehaviour
     [SerializeField] private float toastDuration = 2f;
     [SerializeField] private float fadeDuration  = 0.3f;
 
+    [Header("Death Panel")]
+    [SerializeField] private float deathPanelDuration = 3f;
+
     [Header("Backdrop")]
     [SerializeField][Range(0f, 1f)] private float backdropAlpha = 0.82f;
 
+    public static PauseMenuController Instance { get; private set; }
+
     private bool _isPaused = false;
     private Coroutine _toastCoroutine;
+    private Coroutine _deathCoroutine;
 
     private const string VOLUME_PREF = "MasterVolume";
+
+    // ─────────────────────────────────────────────────────────────
+    // Singleton
+    // ─────────────────────────────────────────────────────────────
+
+    void Awake()
+    {
+        Instance = this;
+    }
 
     // ─────────────────────────────────────────────────────────────
     // Lifecycle
@@ -62,7 +82,13 @@ public class PauseMenuController : MonoBehaviour
             saveToast.gameObject.SetActive(false);
         }
 
+        if (deathPanel != null)
+            deathPanel.SetActive(false);
+
         SetBackdrop(false);
+
+        if (crosshairObject != null)
+            crosshairObject.SetActive(PlayerPrefs.GetInt("CrosshairEnabled", 1) == 1);
     }
 
     void Update()
@@ -80,6 +106,13 @@ public class PauseMenuController : MonoBehaviour
 
     private void HandleEscapePressed()
     {
+        // Block ESC while death or level complete panels are showing
+        if (deathPanel != null && deathPanel.activeSelf)
+            return;
+
+        if (levelCompletePanel != null && levelCompletePanel.activeSelf)
+            return;
+
         if (tutorialPanel != null && tutorialPanel.activeSelf)
         {
             CloseTutorial();
@@ -211,7 +244,13 @@ public class PauseMenuController : MonoBehaviour
         pauseMenuPanel.SetActive(false);
         optionsPanel.SetActive(true);
         SetBackdrop(true);
-        optionsPanel.GetComponent<SettingsController>()?.Initialize();
+
+        SettingsController sc = optionsPanel.GetComponent<SettingsController>();
+        if (sc != null)
+        {
+            sc.Initialize();
+            sc.SyncMasterVolume(AudioListener.volume);
+        }
     }
 
     public void CloseOptions()
@@ -288,6 +327,95 @@ public class PauseMenuController : MonoBehaviour
     }
 
     // ─────────────────────────────────────────────────────────────
+    // Death Panel
+    // ─────────────────────────────────────────────────────────────
+
+    public void ShowDeathPanel()
+    {
+        if (deathPanel == null) return;
+
+        // Cancel any existing death panel coroutine
+        if (_deathCoroutine != null)
+            StopCoroutine(_deathCoroutine);
+
+        _deathCoroutine = StartCoroutine(DeathPanelRoutine());
+    }
+
+    private IEnumerator DeathPanelRoutine()
+    {
+        deathPanel.SetActive(true);
+
+        if (crosshairObject != null)
+            crosshairObject.SetActive(false);
+
+        yield return new WaitForSecondsRealtime(deathPanelDuration);
+
+        deathPanel.SetActive(false);
+
+        if (!_isPaused && crosshairObject != null)
+            crosshairObject.SetActive(PlayerPrefs.GetInt("CrosshairEnabled", 1) == 1);
+
+        _deathCoroutine = null;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Level Complete
+    // ─────────────────────────────────────────────────────────────
+
+    public void ShowLevelComplete()
+    {
+        Time.timeScale = 0f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        SetBackdrop(true);
+
+        if (crosshairObject != null)
+            crosshairObject.SetActive(false);
+
+        if (levelCompletePanel != null)
+            levelCompletePanel.SetActive(true);
+    }
+
+    public void OnRestartClicked()
+    {
+        PlayClick();
+        Time.timeScale = 1f;
+
+        #if UNITY_EDITOR
+            if (currentLevelScene != null)
+            {
+                string path = UnityEditor.AssetDatabase.GetAssetPath(currentLevelScene);
+                string sceneName = System.IO.Path.GetFileNameWithoutExtension(path);
+                SceneManager.LoadScene(sceneName);
+                return;
+            }
+        #endif
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void OnLevelSelectClicked()
+    {
+        PlayClick();
+        Time.timeScale = 1f;
+
+        PlayerPrefs.SetInt("OpenLevelSelect", 1);
+        PlayerPrefs.Save();
+
+        #if UNITY_EDITOR
+            if (levelSelectScene != null)
+            {
+                string path = UnityEditor.AssetDatabase.GetAssetPath(levelSelectScene);
+                string sceneName = System.IO.Path.GetFileNameWithoutExtension(path);
+                SceneManager.LoadScene(sceneName);
+                return;
+            }
+        #endif
+
+        SceneManager.LoadScene(mainMenuSceneName);
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // Save Toast
     // ─────────────────────────────────────────────────────────────
 
@@ -343,31 +471,13 @@ public class PauseMenuController : MonoBehaviour
     }
 
     // ─────────────────────────────────────────────────────────────
-    // Level Complete
+    // Crosshair
     // ─────────────────────────────────────────────────────────────
 
-    public void ShowLevelComplete()
+    public void SetCrosshairVisible(bool visible)
     {
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-        SetBackdrop(true);
-
-        if (levelCompletePanel != null)
-            levelCompletePanel.SetActive(true);
-
-        StartCoroutine(LevelCompleteRoutine());
-    }
-
-    private IEnumerator LevelCompleteRoutine()
-    {
-        yield return new WaitForSecondsRealtime(10f);
-
-        if (levelCompletePanel != null)
-            levelCompletePanel.SetActive(false);
-
-        SetBackdrop(false);
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        if (crosshairObject != null)
+            crosshairObject.SetActive(visible);
     }
 
     // ─────────────────────────────────────────────────────────────

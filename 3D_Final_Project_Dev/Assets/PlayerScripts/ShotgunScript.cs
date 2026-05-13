@@ -44,7 +44,7 @@ public class ShotgunScript : MonoBehaviour
         {
             hurtBox.ToggleHurtBoxOn();
         }
-        AudioFXController.instance.PlayRandAudioFXClip(shotgunSounds, null, shotgunVolume);
+        AudioFXController.instance.PlayRandAudioFXClip(shotgunSounds, null, shotgunVolume * SettingsController.SFXVolume);
         Invoke("ReLoad", damageWindow);
         StopAllCoroutines();
         StartCoroutine(PlayCycle());

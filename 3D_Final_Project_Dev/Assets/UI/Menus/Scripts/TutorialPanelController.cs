@@ -71,6 +71,6 @@ public class TutorialPanelController : MonoBehaviour
     private void PlaySound()
     {
         if (audioSource == null || backButtonSound == null) return;
-        audioSource.PlayOneShot(backButtonSound, volume);
+        audioSource.PlayOneShot(backButtonSound, SettingsController.SFXVolume);
     }
 }

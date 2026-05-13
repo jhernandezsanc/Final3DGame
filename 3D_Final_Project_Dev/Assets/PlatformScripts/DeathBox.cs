@@ -9,14 +9,17 @@ public class DeathBox : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             CharacterController cc = other.GetComponent<CharacterController>();
-            
+
             if (cc != null)
             {
-                // Disable CC to allow the teleport to happen instantly
-                cc.enabled = false; 
+                cc.enabled = false;
                 other.transform.position = respawnPoint;
                 cc.enabled = true;
             }
+
+            // Trigger death panel on PauseMenuController
+            if (PauseMenuController.Instance != null)
+                PauseMenuController.Instance.ShowDeathPanel();
         }
     }
 }
