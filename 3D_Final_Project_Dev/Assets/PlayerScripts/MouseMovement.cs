@@ -23,12 +23,15 @@ public class MouseMovement : MonoBehaviour
 
     void Update()
     {
-        if (Mouse.current != null) //just in case we ever add controller support 
+        if (Mouse.current != null) //just in case we ever add controller support
         {
             Vector2 mouseDelta = Mouse.current.delta.ReadValue();
+            float sens = SettingsController.CurrentSensitivity;
             //grabs mouse inputs
-            float mouseX = mouseDelta.x * xMouseSensativity * Time.deltaTime;
-            float mouseY = mouseDelta.y * yMouseSensativity * Time.deltaTime;
+            float mouseX = mouseDelta.x * sens * Time.deltaTime;
+            float mouseY = mouseDelta.y * sens * Time.deltaTime;
+
+            if (SettingsController.InvertY) mouseY = -mouseY;
 
             //rotations around axis
             xRotation -= mouseY;
