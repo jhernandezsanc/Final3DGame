@@ -12,6 +12,7 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private GameObject mainMenuPanel;
     [SerializeField] private GameObject levelSelectPanel;
     [SerializeField] private GameObject optionPanel;
+    [SerializeField] private GameObject exitButton;
 
     [Header("Scene References")]
     [SerializeField] private Object level1Scene;
@@ -138,6 +139,16 @@ public class MainMenuController : MonoBehaviour
             sc.Initialize();
             sc.SyncMasterVolume(AudioListener.volume);
         }
+    }
+
+    public void OnExitClicked()
+    {
+        PlayClick();
+        #if UNITY_EDITOR
+            EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
     }
 
     // ─────────────────────────────────────────────────────────────
