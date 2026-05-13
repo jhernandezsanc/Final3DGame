@@ -19,6 +19,8 @@ public class MovingPlatform : MonoBehaviour
     private Vector3 lastVelocity;
     private float speedValue;
 
+    public float timeDelay;
+
     void Start()
     {
         startPos = transform.position;
@@ -28,7 +30,7 @@ public class MovingPlatform : MonoBehaviour
     void Update()
     {
         // 1. Move platform
-        float cycle = Time.time * speed;
+        float cycle = (Time.time - timeDelay) * speed;
 
         float sine = Mathf.Sin(cycle);
         float t = (sine + 1f) * 0.5f;
